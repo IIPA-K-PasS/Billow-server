@@ -20,8 +20,8 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // 사용자 권한(Role) 목록을 반환하는 곳. 지금은 사용하지 않으므로 null 반환.
-        return null;
+        // 사용자 권한(Role) 목록을 반환하는 곳. 지금은 사용하지 않으므로 비어있는 리스트 반환.
+        return java.util.Collections.emptyList();
     }
 
     @Override
