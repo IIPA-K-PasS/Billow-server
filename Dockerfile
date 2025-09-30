@@ -16,8 +16,10 @@ COPY settings.gradle .
 COPY src src
 
 # 권한 추가
-RUN chmod +x ./gradlew
-RUN apt-get update && apt-get install -y findutils
+RUN chmod +x ./gradlew && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends findutils && \
+    rm -rf /var/lib/apt/lists/*
 
 # Gradle을 이용해 프로젝트를 빌드 (실행 가능한 .jar 파일 생성)
 RUN ./gradlew build
