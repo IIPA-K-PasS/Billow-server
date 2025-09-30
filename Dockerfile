@@ -1,5 +1,3 @@
-# --- Spring Boot Multi-stage Dockerfile 예제 (Gradle 기준) ---
-
 # =============================================
 # STAGE 1: 코드를 빌드하여 .jar 파일을 만드는 단계
 # =============================================
@@ -25,6 +23,10 @@ RUN ./gradlew build
 # STAGE 2: 빌드된 .jar 파일만으로 실제 실행용 이미지를 만드는 단계
 # =============================================
 FROM openjdk:17-jdk-slim
+
+# non-root 사용자 생성 및 전환
+RUN addgroup --system spring && adduser --system --ingroup spring spring
+USER spring
 
 # 작업 공간 설정
 WORKDIR /app
