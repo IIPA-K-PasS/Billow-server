@@ -1,0 +1,42 @@
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billow-server-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: billow-server
+  template:
+    metadata:
+      labels:
+        app: billow-server
+    spec:
+      containers:
+        - name: billow-server-container
+          image: handher0/billow-server:0.2
+          ports:
+            - containerPort: 8080
+
+          env:
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: billow-secrets # 아래 2단계에서 만들 Secret의 이름
+                  key: JWT_SECRET_KEY
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: billow-secrets
+                  key: DB_URL
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: billow-secrets
+                  key: DB_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: billow-secrets
+                  key: DB_PASSWORD
