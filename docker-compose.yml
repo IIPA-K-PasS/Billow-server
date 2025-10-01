@@ -1,0 +1,9 @@
+services:
+  app:
+    image: handher0/billow-server:0.1
+    container_name: billow-server-app
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env

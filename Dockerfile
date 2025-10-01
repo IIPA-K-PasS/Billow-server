@@ -1,47 +1,35 @@
-# =============================================
-# STAGE 1: 코드를 빌드하여 .jar 파일을 만드는 단계
-# =============================================
-FROM openjdk:17-jdk as builder
-
-# 작업 공간 설정
-WORKDIR /workspace/app
-
-# 빌드에 필요한 파일들을 먼저 복사
-COPY gradlew .
-COPY gradle gradle
-COPY build.gradle .
-COPY settings.gradle .
-
-# 소스코드 전체를 복사
-COPY src src
-
-# 권한 추가
-RUN chmod +x ./gradlew && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends findutils && \
-    rm -rf /var/lib/apt/lists/*
-
-# Gradle을 이용해 프로젝트를 빌드 (실행 가능한 .jar 파일 생성)
-RUN ./gradlew build
-
-# =============================================
-# STAGE 2: 빌드된 .jar 파일만으로 실제 실행용 이미지를 만드는 단계
-# =============================================
-FROM openjdk:17-jdk-slim
-
-# non-root 사용자 생성 및 전환
-RUN addgroup --system spring && adduser --system --ingroup spring spring
-USER spring
-
-# 작업 공간 설정
+# 1단계: 빌드용 이미지
+FROM eclipse-temurin:17-jdk as build
 WORKDIR /app
 
-# 위 'builder' 스테이지에서 생성된 .jar 파일을 복사해옴
-# --from=builder 옵션이 핵심입니다.
-COPY --from=builder /workspace/app/build/libs/*.jar app.jar
+# gradlew 및 설정 파일 복사
+COPY build.gradle settings.gradle gradlew ./
+COPY gradle ./gradle
 
-# 스프링 부트 앱은 보통 8080 포트를 사용
+# gradlew 실행 권한 추가
+RUN chmod +x ./gradlew
+
+# 의존성 캐싱
+RUN ./gradlew dependencies
+
+# 전체 소스 복사
+COPY . .
+
+# gradlew 실행 권한 재추가
+RUN chmod +x ./gradlew
+
+# 빌드 실행
+RUN ./gradlew bootJar
+
+# 2단계: 실행용 이미지 (경량화)
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+
+# 빌드 단계에서 생성된 JAR 복사
+COPY --from=build /app/build/libs/*.jar app.jar
+
+# 8080 포트 오픈
 EXPOSE 8080
 
-# 컨테이너가 시작될 때 이 명령어로 .jar 파일을 실행
+# 실행 명령
 ENTRYPOINT ["java","-jar","app.jar"]
