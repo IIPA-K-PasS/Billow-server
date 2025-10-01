@@ -15,8 +15,13 @@ COPY settings.gradle .
 # 소스코드 전체를 복사
 COPY src src
 
+# 권한 추가
+RUN chmod +x ./gradlew && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends findutils && \
+    rm -rf /var/lib/apt/lists/*
+
 # Gradle을 이용해 프로젝트를 빌드 (실행 가능한 .jar 파일 생성)
-# 이 명령어를 실행하면 build/libs/ 폴더 안에 .jar 파일이 생성됩니다.
 RUN ./gradlew build
 
 # =============================================
