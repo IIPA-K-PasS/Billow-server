@@ -93,36 +93,17 @@ spec:
             - secretRef:
                 name: billow-secrets
 ---
-# 4. 우리 앱을 위한 '내부' 주소(Service) 생성
+# 4. 우리 앱을 위한 외부 연결 통로(Service) 생성
 apiVersion: v1
 kind: Service
 metadata:
   name: billow-server-service
 spec:
-  # [수정!] 타입을 LoadBalancer나 NodePort가 아닌, 내부 통신용 ClusterIP로 변경
-  type: ClusterIP
+  # [수정!] 타입을 다시 NodePort로 변경
+  type: NodePort
   selector:
     app: billow-server
   ports:
     - protocol: TCP
-      port: 8080 # 이제 외부 포트가 아닌, 내부에서 사용할 포트를 명시
+      port: 80
       targetPort: 8080
----
-# 5. [신규!] Ingress 규칙 생성
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: billow-server-ingress
-spec:
-  rules:
-    - http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                # [연결!] Ingress가 요청을 전달할 서비스 이름
-                name: billow-server-service
-                port:
-                  # [연결!] 위 서비스의 포트 번호
-                  number: 8080
