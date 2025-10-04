@@ -1,0 +1,108 @@
+# k8s-deployment.yaml (모든 문제 해결책이 적용된 최종 완성본)
+
+# 1. MySQL을 위한 내부 주소(Service) 생성
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+spec:
+  selector:
+    app: mysql
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+---
+# 2. MySQL 컨테이너 배포 (Deployment)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  # 3단계에서 만들 billow-secrets Secret을 사용
+                  name: billow-secrets
+                  key: DB_PASSWORD
+            - name: MYSQL_DATABASE
+              # 컨테이너 시작 시 'billow' 데이터베이스를 자동으로 생성
+              value: "billow"
+          volumeMounts:
+            - name: mysql-temp-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        # 권한 문제가 있었던 영구 디스크(PVC) 대신, 데이터가 저장되지 않는 임시 디스크(emptyDir)를 사용
+        - name: mysql-temp-storage
+          emptyDir: {}
+---
+# 3. 우리 앱(billow-server) 배포 (Deployment)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billow-server-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: billow-server
+  template:
+    metadata:
+      labels:
+        app: billow-server
+    spec:
+      containers:
+        - name: billow-server-container
+          # 1단계에서 빌드/푸시한 최종 이미지 버전을 사용
+          image: handher0/billow-server:1.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          # [핵심] DB가 준비될 시간을 벌어주는 헬스 체크 추가
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            # 컨테이너 시작 후 40초 기다렸다가 첫 체크 시작
+            initialDelaySeconds: 40
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            # 컨테이너 시작 후 80초 기다렸다가 첫 체크 시작
+            initialDelaySeconds: 80
+            periodSeconds: 20
+          # envFrom을 사용하여 Secret의 모든 값을 한번에 환경변수로 주입
+          envFrom:
+            - secretRef:
+                name: billow-secrets
+---
+# 4. 우리 앱을 위한 외부 연결 통로(Service) 생성
+apiVersion: v1
+kind: Service
+metadata:
+  name: billow-server-service
+spec:
+  type: NodePort
+  selector:
+    app: billow-server
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080

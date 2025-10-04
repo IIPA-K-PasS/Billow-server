@@ -110,4 +110,4 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: validate # 운영 환경에서는 테이블 구조를 검증만 하고 자동으로 변경하지 않도록 설정
+      ddl-auto: update
