@@ -67,6 +67,14 @@ ncp:
     url: ${NCP_APIGW_URL}
     secret-key: ${NCP_SECRET_KEY}
 
+# Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        # 헬스 체크(health)와 정보(info) 엔드포인트만 외부 웹으로 노출
+        include: "health,info"
+
 ---
 # ===================================================================
 # "local" 프로필 전용 설정 (IntelliJ에서 직접 실행 시)
