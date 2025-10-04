@@ -69,7 +69,7 @@ spec:
       containers:
         - name: billow-server-container
           # 1단계에서 빌드/푸시한 최종 이미지 버전을 사용
-          image: handher0/billow-server:1.0
+          image: handher0/billow-server:1.1
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
