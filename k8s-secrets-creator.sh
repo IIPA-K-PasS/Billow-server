@@ -12,7 +12,7 @@ kubectl create secret generic billow-secrets \
   --from-literal=KAKAO_REST_API_KEY='7ec4f6a69b4d7748dbead0c3b24f4bd4' \
   --from-literal=KAKAO_NATIVE_APP_KEY='b70b066e6c735236882c7e05c089e3f6' \
   --from-literal=KAKAO_CLIENT_SECRET='098cdbb27da0363dfb4cd48a67c75145' \
-  --from-literal=KAKAO_REDIRECT_URI='http://localhost:8080/login/oauth2/code/kakao' \
+  --from-literal=KAKAO_REDIRECT_URI='http://210-178-1-111.nip.io/login/oauth2/code/kakao' \
   --from-literal=DB_URL='jdbc:mysql://mysql-service:3306/billow' \
   --from-literal=DB_USERNAME='root' \
   --from-literal=DB_PASSWORD='1234' \

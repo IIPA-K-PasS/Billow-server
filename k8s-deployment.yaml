@@ -107,7 +107,6 @@ spec:
   # 이 Ingress 규칙을 처리할 담당 컨트롤러를 'dx-m1'로 명시합니다.
   ingressClassName: "dx-m1"
   rules:
-    - host: "210-178-1-111.nip.io"
     - http:
         paths:
           - path: /
