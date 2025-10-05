@@ -63,7 +63,7 @@ spec:
     spec:
       containers:
         - name: billow-server-container
-          image: handher0/billow-server:1.2 # Actuator가 추가된 최종 버전을 사용
+          image: handher0/billow-server:1.3
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
