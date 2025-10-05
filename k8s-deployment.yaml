@@ -63,7 +63,7 @@ spec:
     spec:
       containers:
         - name: billow-server-container
-          image: handher0/billow-server:1.3
+          image: handher0/billow-server:1.4
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -103,18 +103,20 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: billow-server-ingress
+  annotations:
+    # [수정!] 경로를 그대로 전달하라는 지시를 유지합니다.
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
-  # 이 Ingress 규칙을 처리할 담당 컨트롤러를 'dx-m1'로 명시합니다.
   ingressClassName: "dx-m1"
   rules:
-    - http:
+    - host: "210-178-1.111.nip.io"
+      http:
         paths:
-          - path: /
-            pathType: Prefix
+          # [수정!] 경로를 더 구체적으로 잡아내도록 변경합니다.
+          - path: /()(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
-                # Ingress는 'billow-server-service'라는 내부 주소를 찾아갑니다.
                 name: billow-server-service
                 port:
-                  # 그 서비스의 8080 포트로 요청을 전달합니다.
                   number: 8080
