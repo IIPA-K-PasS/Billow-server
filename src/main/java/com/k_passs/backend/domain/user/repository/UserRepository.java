@@ -17,6 +17,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<Bookmark> findBookmarksByUserId(Long userId);
 
     // 완료한 챌린지 조회
-    @Query("select c from Challenge c where c.user.id = :userId and c.isDone = true")
+    @Query("""
+    select uc.challenge
+    from UserChallenge uc
+    join uc.challenge c
+    where uc.user.id = :userId
+      and uc.status = com.k_passs.backend.domain.model.enums.ChallengeStatus.COMPLETED
+    """)
     List<Challenge> findCompletedChallengesByUserId(Long userId);
 }
