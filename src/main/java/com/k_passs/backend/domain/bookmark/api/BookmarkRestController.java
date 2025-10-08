@@ -1,10 +1,12 @@
 package com.k_passs.backend.domain.bookmark.api;
 
+import com.fasterxml.jackson.databind.ser.Serializers;
 import com.k_passs.backend.domain.bookmark.dto.BookmarkRequestDTO;
 import com.k_passs.backend.domain.bookmark.service.BookmarkService;
 import com.k_passs.backend.domain.user.entity.User;
 import com.k_passs.backend.domain.user.service.UserService;
 import com.k_passs.backend.global.common.response.BaseResponse;
+import com.k_passs.backend.global.error.code.status.ErrorStatus;
 import com.k_passs.backend.global.error.code.status.SuccessStatus;
 import com.k_passs.backend.global.oauth2.CustomOAuth2User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,10 +37,7 @@ public class BookmarkRestController {
             @RequestBody @Valid BookmarkRequestDTO.Bookmark request
     ) {
         if (user == null || user.getUser() == null) {
-            // 테스트용 더미 유저 생성
-            User dummyUser = userService.getUserById(1L); // 테스트용 ID
-            bookMarkService.updateBookmarkStatus(dummyUser, request);
-            return BaseResponse.onSuccess(SuccessStatus.BOOKMARK_STATUS_CHANGED, "북마크 상태가 변경되었습니다.");
+            return BaseResponse.onFailure(ErrorStatus._USER_UNAUTHORIZED, "유저 인증에 실패했습니다.");
         }
 
         bookMarkService.updateBookmarkStatus(user.getUser(), request);

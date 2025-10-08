@@ -18,7 +18,10 @@ public enum ErrorStatus implements BaseErrorCode {
 
     ///  auth 에러
     _KAKAO_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH401", "카카오 인증 실패"),
-    _USER_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON401", "유저 인증 실패")
+    _USER_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON401", "유저 인증 실패"),
+
+    ///  User 에러
+    NO_SUCH_USER(HttpStatus.BAD_REQUEST,"USER_404","유저가 존재하지 않습니다."),
     ;
 
     private final HttpStatus httpStatus;
