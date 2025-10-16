@@ -69,17 +69,18 @@ public class TermServiceImpl implements TermService{
         }
 
         // 필수 약관 동의 여부 검증
-        for (Integer requiredId : requiredTermIds) {
-            boolean isAgreed = request.getTerms().stream()
-                    .filter(termReq -> termReq.getTermId().equals(requiredId))
-                    .findFirst()
-                    .map(TermRequestDTO.TermAgreement::getAgreed)
-                    .orElse(false);
+        Map<Integer, Boolean> receivedAgreements = request.getTerms().stream()
+                .collect(Collectors.toMap(
+                        TermRequestDTO.TermAgreement::getTermId,
+                        TermRequestDTO.TermAgreement::getAgreed
+                ));
 
-            if (!isAgreed) throw new GeneralException(ErrorStatus.REQUIRED_TERM_NOT_AGREED);
+        for (Integer requiredId : requiredTermIds) {
+            if (!receivedAgreements.getOrDefault(requiredId, false)) {
+                throw new GeneralException(ErrorStatus.REQUIRED_TERM_NOT_AGREED);
+            }
         }
 
-        // ✅ Upsert 로직: 기존 데이터 있으면 update, 없으면 insert
         for (TermRequestDTO.TermAgreement termReq : request.getTerms()) {
             Term term = allTerms.get(termReq.getTermId());
 
