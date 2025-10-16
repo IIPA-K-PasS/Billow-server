@@ -25,7 +25,10 @@ public enum SuccessStatus implements BaseCode {
     USER_GET_SUCCESS(HttpStatus.OK,"USER_200","회원 정보 조회가 성공적으로 조회되었습니다."),
     USER_UPDATE_NAME(HttpStatus.CREATED, "USER_201","회원 닉네임 수정이 성공적으로 수정되었습니다."),
     USER_GET_TIPS(HttpStatus.OK, "USER_202", "회원이 찜한 꿀팁이 조회되었습니다."),
-    USER_GET_CHALLENGE(HttpStatus.OK,"USER_203","회원이 완료한 챌린지가 조회되었습니다.")
+    USER_GET_CHALLENGE(HttpStatus.OK,"USER_203","회원이 완료한 챌린지가 조회되었습니다."),
+
+    // Term
+    USER_AGREE_TERMS(HttpStatus.CREATED, "MEMBER_201", "성공적으로 생성되었습니다.")
     ;
 
 
