@@ -5,9 +5,32 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class TermResponseDTO {
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GetAgreeResult {
+        private List<AllAgreement> terms;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AllAgreement {
+        private Integer termId;
+        private String title;
+        private String content;
+        private Boolean agreed;
+    }
+
+
+
     @Builder
     @Getter
     @NoArgsConstructor

@@ -13,10 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,6 +21,18 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class TermRestController {
     private final TermService termService;
+
+    @GetMapping
+    @Operation(summary = "전체 약관 목록과 사용자의 동의 여부를 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "COMMON_200", description = "약관 목록 조회가 성공적으로 완료되었습니다.")
+    })
+    public BaseResponse<TermResponseDTO.GetAgreeResult> getAllTerms(
+            @AuthenticationPrincipal(expression = "user") User user
+    ) {
+        TermResponseDTO.GetAgreeResult result = termService.getAllTerms(user);
+        return BaseResponse.onSuccess(SuccessStatus.OK, result);
+    }
 
     // [추가] 약관 동의
     @PostMapping("")

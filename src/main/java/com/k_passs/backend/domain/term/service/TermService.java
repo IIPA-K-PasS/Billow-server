@@ -5,5 +5,7 @@ import com.k_passs.backend.domain.term.dto.response.TermResponseDTO;
 import com.k_passs.backend.domain.user.entity.User;
 
 public interface TermService {
+    TermResponseDTO.GetAgreeResult getAllTerms(User user);
+
     TermResponseDTO.TermAgreeResult termAgree(User user, TermRequestDTO.TermAgreeRequest request);
 }

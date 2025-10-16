@@ -27,6 +27,28 @@ public class TermServiceImpl implements TermService{
     private final TermRepository termRepository; // 약관 Repository
     private final UserTermRepository userTermRepository; // 사용자 약관 Repository
 
+    // [추가] 전체 약관 목록 및 사용자 동의 여부 조회
+    @Override
+    @Transactional(readOnly = true)
+    public TermResponseDTO.GetAgreeResult getAllTerms(User user) {
+        // 1. 모든 약관(Term) 목록 조회
+        List<Term> allTerms = termRepository.findAll();
+
+        // 2. 해당 사용자의 모든 약관 동의 정보(UserTerm) 조회
+        // (가정: UserTermRepository에 findByUser(User user) 메소드가 존재)
+        List<UserTerm> userTerms = userTermRepository.findByUser(user);
+
+        // 3. UserTerm 리스트를 Map<Term ID, Agreed Status> 형태로 변환 (조회 효율을 위해)
+        Map<Integer, Boolean> userAgreements = userTerms.stream()
+                .collect(Collectors.toMap(
+                        userTerm -> userTerm.getTerm().getId(), // UserTerm.term.id
+                        UserTerm::getAgreed // UserTerm.agreed
+                ));
+
+        // 4. Converter를 사용하여 응답 DTO로 변환
+        return TermConverter.toGetAllTermsResult(allTerms, userAgreements);
+    }
+
     @Override
     @Transactional
     public TermResponseDTO.TermAgreeResult termAgree(User user, TermRequestDTO.TermAgreeRequest request) {
