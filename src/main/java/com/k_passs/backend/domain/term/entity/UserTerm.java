@@ -36,4 +36,8 @@ public class UserTerm extends BaseEntity {
         this.term = term;
         this.agreed = agreed;
     }
+
+    public void updateAgreed(Boolean agreed) {
+        this.agreed = agreed;
+    }
 }

@@ -56,50 +56,51 @@ public class TermServiceImpl implements TermService{
                 .map(TermRequestDTO.TermAgreement::getTermId)
                 .collect(Collectors.toSet());
 
-        // 1. 필수 약관 ID 목록을 DB에서 조회
+        // 필수 약관 ID 목록 조회
         Set<Integer> requiredTermIds = termRepository.findAllRequiredTermIds();
 
-        // 2. 요청된 모든 약관을 DB에서 조회하여 Map 형태로 변환 (ID -> Term 엔티티)
+        // 요청된 약관들을 DB에서 조회 (ID → Term)
         Map<Integer, Term> allTerms = termRepository.findByIdIn(receivedTermIds).stream()
                 .collect(Collectors.toMap(Term::getId, Function.identity()));
 
-        // 3. 존재하지 않는 약관 ID 검증
+        // 존재하지 않는 약관 검증
         if (allTerms.size() != receivedTermIds.size()) {
-            // 요청된 ID 개수와 조회된 Term 엔티티 개수가 다르면, 존재하지 않는 약관 ID가 포함됨
             throw new GeneralException(ErrorStatus.TERM_NOT_FOUND);
         }
 
-        // 4. 필수 약관 동의 여부 검증 및 누락된 필수 약관 체크
+        // 필수 약관 동의 여부 검증
         for (Integer requiredId : requiredTermIds) {
-            // 필수 약관이 요청에 포함되었는지, 그리고 동의했는지 확인
             boolean isAgreed = request.getTerms().stream()
                     .filter(termReq -> termReq.getTermId().equals(requiredId))
                     .findFirst()
                     .map(TermRequestDTO.TermAgreement::getAgreed)
-                    .orElse(false); // 요청에 포함되지 않았으면 동의하지 않은 것으로 간주
+                    .orElse(false);
 
-            if (!isAgreed) {
-                // 필수 약관 미동의 또는 누락 시 에러
-                throw new GeneralException(ErrorStatus.REQUIRED_TERM_NOT_AGREED);
-            }
+            if (!isAgreed) throw new GeneralException(ErrorStatus.REQUIRED_TERM_NOT_AGREED);
         }
 
-        // 5. 약관 동의 정보 저장 로직
-        List<UserTerm> userTermsToSave = request.getTerms().stream()
-                .map(termReq -> {
-                    Term term = allTerms.get(termReq.getTermId());
+        // ✅ Upsert 로직: 기존 데이터 있으면 update, 없으면 insert
+        for (TermRequestDTO.TermAgreement termReq : request.getTerms()) {
+            Term term = allTerms.get(termReq.getTermId());
 
-                    return UserTerm.builder()
-                            .user(user)
-                            .term(term)
-                            .agreed(termReq.getAgreed())
-                            .build();
-                })
-                .toList();
+            userTermRepository.findByUserAndTerm(user, term)
+                    .ifPresentOrElse(
+                            existing -> {
+                                // 이미 존재하면 동의 상태만 갱신
+                                existing.updateAgreed(termReq.getAgreed());
+                            },
+                            () -> {
+                                // 없으면 새로 생성
+                                UserTerm newUserTerm = UserTerm.builder()
+                                        .user(user)
+                                        .term(term)
+                                        .agreed(termReq.getAgreed())
+                                        .build();
+                                userTermRepository.save(newUserTerm);
+                            }
+                    );
+        }
 
-        userTermRepository.saveAll(userTermsToSave);
-
-        // 6. 응답 DTO 변환 및 반환
         return TermConverter.toTermAgreeResult(user.getId(), request);
     }
 }
