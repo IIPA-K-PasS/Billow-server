@@ -28,7 +28,7 @@ public enum SuccessStatus implements BaseCode {
     USER_GET_CHALLENGE(HttpStatus.OK,"USER_203","회원이 완료한 챌린지가 조회되었습니다."),
 
     // Term
-    USER_AGREE_TERMS(HttpStatus.CREATED, "MEMBER_201", "성공적으로 생성되었습니다.")
+    USER_AGREE_TERMS(HttpStatus.CREATED, "MEMBER_201", "약관 동의 처리가 성공적으로 완료되었습니다.")
     ;
 
 
