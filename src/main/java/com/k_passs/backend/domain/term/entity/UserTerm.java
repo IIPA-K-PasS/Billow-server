@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.Id;
 
 @Entity
-@Table(name = "user_terms")
+@Table(name = "user_terms", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "term_id"})})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserTerm extends BaseEntity {
