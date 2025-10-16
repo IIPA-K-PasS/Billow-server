@@ -25,6 +25,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+
+        // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+        // [핵심 수정!] /actuator/** 하위 경로에 대한 요청은 JWT 검증을 건너뛰도록 설정합니다.
+        // 이것은 쿠버네티스의 헬스 체크(livenessProbe, readinessProbe)가 정상적으로 작동하기 위함입니다.
+        if (request.getRequestURI().startsWith("/actuator")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+        System.out.println("JwtAuthenticationFilter 작동 시작");
         final String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.trim().toLowerCase().startsWith("bearer ")) {

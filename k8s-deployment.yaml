@@ -1,0 +1,146 @@
+# '영구 저장 공간' 정의 (PV - PersistentVolume)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv
+spec:
+  capacity:
+    storage: 1Gi
+  nfs:
+    server: "172.25.2.136"
+    path: "/share_93c08a74_56b7_43e7_b358_da88173f7518"
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+---
+# '영구 저장 공간' 신청 (PVC)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  volumeName: mysql-pv
+---
+
+# MySQL을 위한 내부 주소(Service) 생성
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+spec:
+  selector:
+    app: mysql
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+---
+# MySQL 컨테이너 배포 (Deployment)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: billow-secrets
+                  key: DB_PASSWORD
+            - name: MYSQL_DATABASE
+              value: "billow"
+          volumeMounts:
+            - name: mysql-temp-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-temp-storage
+          emptyDir: {}
+---
+# billow-server 배포 (Deployment)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billow-server-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: billow-server
+  template:
+    metadata:
+      labels:
+        app: billow-server
+    spec:
+      containers:
+        - name: billow-server-container
+          image: handher0/billow-server:1.4
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 80
+            periodSeconds: 20
+          envFrom:
+            - secretRef:
+                name: billow-secrets
+---
+# '내부' 주소(Service) 생성
+apiVersion: v1
+kind: Service
+metadata:
+  name: billow-server-service
+spec:
+  type: ClusterIP
+  selector:
+    app: billow-server
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+# Ingress 규칙 생성
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: billow-server-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "billow.210-178-1-132.nip.io"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: billow-server-service
+                port:
+                  number: 8080

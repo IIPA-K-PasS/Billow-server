@@ -1,5 +1,5 @@
 # 1단계: 빌드용 이미지
-FROM eclipse-temurin:17-jdk as build
+FROM eclipse-temurin:17-jdk  as build
 WORKDIR /app
 
 # gradlew 및 설정 파일 복사

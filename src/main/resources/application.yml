@@ -1,21 +1,24 @@
-spring:
-  datasource:
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    url: ${DB_URL}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+# ===================================================================
+# 공통 설정 (모든 환경에 동일하게 적용)
+# ===================================================================
+server:
+  port: 8080
 
+spring:
+  # 기본 활성화 프로필. 아무것도 지정하지 않으면 'local'로 실행됩니다.
+  profiles:
+    active: local
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update # 로컬/개발 환경에서는 update를 사용
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.MySQLDialect # 최신 Dialect 사용 권장
         show_sql: true
         format_sql: true
         use_sql_comments: true
         default_batch_fetch_size: 1000
-
+    defer-datasource-initialization: true
   security:
     oauth2:
       client:
@@ -34,7 +37,6 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
-
   servlet:
     multipart:
       max-file-size: 100MB
@@ -56,7 +58,7 @@ jwt:
 logging:
   level:
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    # org.hibernate.type.descriptor.sql.BasicBinder: TRACE # 너무 로그가 많으면 주석 처리
     org.springframework.jdbc.core: DEBUG
 
 # Naver Cloud Platform OCR API Credentials
@@ -64,3 +66,56 @@ ncp:
   api:
     url: ${NCP_APIGW_URL}
     secret-key: ${NCP_SECRET_KEY}
+
+# Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        # 헬스 체크(health)와 정보(info) 엔드포인트만 외부 웹으로 노출
+        include: "health,info"
+
+---
+# ===================================================================
+# "local" 프로필 전용 설정 (IntelliJ에서 직접 실행 시)
+# ===================================================================
+spring:
+  config:
+    activate:
+      on-profile: "local"
+  datasource:
+    url: jdbc:mysql://localhost:3306/billow_db # 로컬 PC의 DB를 바라봄
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+---
+# ===================================================================
+# "docker" 프로필 전용 설정 (docker-compose up 으로 실행 시)
+# ===================================================================
+spring:
+  config:
+    activate:
+      on-profile: "docker"
+  datasource:
+    url: jdbc:mysql://db:3306/billow_db # docker-compose 내부의 'db' 서비스를 바라봄
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+---
+# ===================================================================
+# "prod" 프로필 전용 설정 (Kubernetes 배포 시)
+# ===================================================================
+spring:
+  config:
+    activate:
+      on-profile: "prod"
+  datasource:
+    url: ${DB_URL} # 쿠버네티스 Secret에서 값을 가져옴 (jdbc:mysql://mysql-service:3306/billow)
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update

@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> {})
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/**").permitAll()
                         // 기존에 수동으로 설정했던 카카오 인증 경로를 제거하고, Swagger 및 기타 API 경로만 허용
                         .requestMatchers(
                                 "/auth/**",
