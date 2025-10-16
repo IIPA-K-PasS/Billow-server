@@ -46,8 +46,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // ifPresent를 사용하면 null 체크를 더 깔끔하게 할 수 있습니다.
                 userRepository.findById(userId).ifPresent(user -> {
-                    // [수정] Principal로 CustomUserDetails 객체를 생성합니다.
-                    CustomUserDetails principal = new CustomUserDetails(user.getId());
+                    // Principal로 CustomUserDetails 객체를 생성할 때, User 엔티티 객체 자체를 전달.
+                    CustomUserDetails principal = new CustomUserDetails(user);
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(principal, null, null); // 권한이 필요 없다면 세 번째 인자는 비워둡니다.

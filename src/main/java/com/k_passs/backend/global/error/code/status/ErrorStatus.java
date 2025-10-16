@@ -22,6 +22,10 @@ public enum ErrorStatus implements BaseErrorCode {
 
     ///  User 에러
     NO_SUCH_USER(HttpStatus.BAD_REQUEST,"USER_404","유저가 존재하지 않습니다."),
+
+    // [추가] 약관 에러
+    TERM_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER_4001", "존재하지 않는 약관 ID입니다."),
+    REQUIRED_TERM_NOT_AGREED(HttpStatus.BAD_REQUEST, "MEMBER_4002", "필수 약관에 동의하지 않았습니다."),
     ;
 
     private final HttpStatus httpStatus;
