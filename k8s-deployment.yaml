@@ -1,4 +1,33 @@
-# 1. MySQL을 위한 내부 주소(Service) 생성
+# '영구 저장 공간' 정의 (PV - PersistentVolume)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv
+spec:
+  capacity:
+    storage: 1Gi
+  nfs:
+    server: "172.25.2.136"
+    path: "/share_93c08a74_56b7_43e7_b358_da88173f7518"
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+---
+# '영구 저장 공간' 신청 (PVC)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  volumeName: mysql-pv
+---
+
+# MySQL을 위한 내부 주소(Service) 생성
 apiVersion: v1
 kind: Service
 metadata:
@@ -11,7 +40,7 @@ spec:
       port: 3306
       targetPort: 3306
 ---
-# 2. MySQL 컨테이너 배포 (Deployment)
+# MySQL 컨테이너 배포 (Deployment)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -46,7 +75,7 @@ spec:
         - name: mysql-temp-storage
           emptyDir: {}
 ---
-# 3. 우리 앱(billow-server) 배포 (Deployment)
+# billow-server 배포 (Deployment)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -83,13 +112,12 @@ spec:
             - secretRef:
                 name: billow-secrets
 ---
-# 4. 우리 앱을 위한 '내부' 주소(Service) 생성
+# '내부' 주소(Service) 생성
 apiVersion: v1
 kind: Service
 metadata:
   name: billow-server-service
 spec:
-  # [정리] Ingress가 사용할 것이므로, 외부로 노출되지 않는 'ClusterIP'가 올바른 타입입니다.
   type: ClusterIP
   selector:
     app: billow-server
@@ -98,7 +126,7 @@ spec:
       port: 8080
       targetPort: 8080
 ---
-# 5. Ingress 규칙 생성 (외부 접속의 최종 해결책)
+# Ingress 규칙 생성
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
