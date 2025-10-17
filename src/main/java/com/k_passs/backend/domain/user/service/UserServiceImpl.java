@@ -21,7 +21,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDTO.GetUserInfo getUserInfo(User user) {
-        return UserConverter.toGetUserInfo(user);
+        User latestUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("User not found")); // 적절한 예외 처리 필요
+
+        return UserConverter.toGetUserInfo(latestUser);
     }
 
     @Override

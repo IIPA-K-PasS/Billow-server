@@ -84,7 +84,7 @@ spring:
     activate:
       on-profile: "local"
   datasource:
-    url: jdbc:mysql://localhost:3306/billow_db # 로컬 PC의 DB를 바라봄
+    url: jdbc:mysql://localhost:3306/billow # 로컬 PC의 DB를 바라봄
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
