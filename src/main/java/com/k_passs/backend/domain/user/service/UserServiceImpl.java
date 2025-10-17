@@ -8,6 +8,7 @@ import com.k_passs.backend.domain.user.dto.UserResponseDTO;
 import com.k_passs.backend.domain.user.entity.User;
 import com.k_passs.backend.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +23,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDTO.GetUserInfo getUserInfo(User user) {
         User latestUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new RuntimeException("User not found")); // 적절한 예외 처리 필요
+                .orElseThrow(() -> new UsernameNotFoundException("User not found")); // 적절한 예외 처리 필요
 
         return UserConverter.toGetUserInfo(latestUser);
     }
