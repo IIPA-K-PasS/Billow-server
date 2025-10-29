@@ -41,7 +41,9 @@ dependencies {
 	implementation 'com.nimbusds:nimbus-jose-jwt:9.37'
 
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 }
+
 
 tasks.named('test') {
 	useJUnitPlatform()

@@ -1,32 +1,3 @@
-# '영구 저장 공간' 정의 (PV - PersistentVolume)
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: mysql-pv
-spec:
-  capacity:
-    storage: 1Gi
-  nfs:
-    server: "172.25.2.136"
-    path: "/share_93c08a74_56b7_43e7_b358_da88173f7518"
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
----
-# '영구 저장 공간' 신청 (PVC)
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Mi
-  volumeName: mysql-pv
----
-
 # MySQL을 위한 내부 주소(Service) 생성
 apiVersion: v1
 kind: Service
@@ -71,6 +42,18 @@ spec:
           volumeMounts:
             - name: mysql-temp-storage
               mountPath: /var/lib/mysql
+          readinessProbe:
+            # 3306 포트로 TCP 연결을 시도해서 성공하면 준비된 것으로 간주
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 15 # 파드 시작 후 15초 뒤에 첫 검사 시작
+            periodSeconds: 10   # 10초마다 반복 검사
+          livenessProbe:
+              # 파드가 살아있는지 확인 (문제가 생기면 재시작)
+              tcpSocket:
+                port: 3306
+              initialDelaySeconds: 20 # 파드 시작 후 20초 뒤에 첫 검사 시작
+              periodSeconds: 10
       volumes:
         - name: mysql-temp-storage
           emptyDir: {}
@@ -92,7 +75,7 @@ spec:
     spec:
       containers:
         - name: billow-server-container
-          image: handher0/billow-server:1.4
+          image: handher0/billow-server:1.7
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -111,6 +94,9 @@ spec:
           envFrom:
             - secretRef:
                 name: billow-secrets
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
 ---
 # '내부' 주소(Service) 생성
 apiVersion: v1
