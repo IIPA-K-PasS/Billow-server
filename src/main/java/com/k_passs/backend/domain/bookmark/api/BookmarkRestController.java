@@ -33,14 +33,14 @@ public class BookmarkRestController {
             @ApiResponse(responseCode = "BOOKMARK_200", description = "북마크 상태가 성공적으로 변경되었습니다.")
     })
     public BaseResponse<String> bookmark(
-            @AuthenticationPrincipal CustomOAuth2User user,
+            @AuthenticationPrincipal(expression = "user") User user,
             @RequestBody @Valid BookmarkRequestDTO.Bookmark request
     ) {
-        if (user == null || user.getUser() == null) {
+        if (user == null) {
             return BaseResponse.onFailure(ErrorStatus._USER_UNAUTHORIZED, "유저 인증에 실패했습니다.");
         }
 
-        bookMarkService.updateBookmarkStatus(user.getUser(), request);
+        bookMarkService.updateBookmarkStatus(user, request);
         return BaseResponse.onSuccess(SuccessStatus.BOOKMARK_STATUS_CHANGED, "북마크 상태가 변경되었습니다.");
     }
 }
